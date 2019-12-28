@@ -5,6 +5,7 @@ from flask_restful import Api, Resource, reqparse
 import redis
 
 app = Flask(__name__)
+app.config['BUNDLE_ERRORS'] = True
 app.debug = True
 db = redis.Redis('localhost') #connect to server
 api = Api(app)
@@ -19,7 +20,7 @@ def welcome():
 
 class KeyValuesAPI(Resource):
     def __init__(self):
-        self.reqparse = reqparse.RequestParser()
+        self.reqparse = reqparse.RequestParser(bundle_errors=True)
         self.reqparse.add_argument(type=dict, location='json')
         super(KeyValuesAPI, self).__init__()
 
