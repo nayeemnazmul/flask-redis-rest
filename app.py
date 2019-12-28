@@ -10,7 +10,7 @@ app.debug = True
 db = redis.Redis('localhost') #connect to server
 api = Api(app)
 
-ttl = 300 # 1 minute
+ttl = 60 # 1 minute
 
 
 @app.route('/')
