@@ -25,9 +25,21 @@ def save_values():
         for key, value in response_data.items():
             flag = db.set(key, value, ex=ttl, nx=True)
 
+            if flag is None:
+                current_value = db.get(key).decode("utf-8")
+                message = "Already exists"
+            else:
+                current_value = value
+                message = "Success"
+
             update_value_dict.update({
-                key: dict(value=value, message="Already exists" if flag is None else "Success", ttl=db.ttl(key))
-            })
+                key: dict(
+                    value=current_value,
+                    message=message,
+                    ttl=db.ttl(key)
+                )
+            }
+            )
 
         response_data.update(update_value_dict)
 
