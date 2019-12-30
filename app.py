@@ -55,6 +55,12 @@ def save_values():
     return jsonify(response_data), 201
 
 
+@app.route('/values?keys=<string:keys>', methods=['GET'])
+def get_specific_values():
+    if request.method == 'GET':
+        pass
+
+
 @app.route('/values', methods=['GET'])
 def get_values():
     if request.method == 'GET':
