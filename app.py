@@ -18,9 +18,9 @@ def welcome():
     return jsonify({"message": "Welcome"}), 200
 
 
-@app.route('/values', methods=['POST'])
+@app.route('/values', methods=['POST', 'PATCH'])
 def save_values():
-    if request.method == 'POST':
+    if request.method == 'POST' or request.method == 'PATCH':
         try:
             response_data = request.json
         except BadRequest as exception:
@@ -28,32 +28,51 @@ def save_values():
         except InternalServerError as exception:
             return jsonify({"message": exception.description}), exception.code
 
-        if len(response_data) == 0:
-            return jsonify({"message": "JSON is empty"}), 400
+    if len(response_data) == 0:
+        return jsonify({"message": "JSON is empty"}), 400
 
-        update_value_dict = {}
-        for key, value in response_data.items():
+    update_value_dict = {}
+    for key, value in response_data.items():
+        if request.method == 'PATCH':
+            flag = db.exists(key)
+
+            if flag == 0:
+                previous_value = None
+                current_value = None
+                ttl_now = None
+                message = "Does not exists"
+            else:
+                previous_value = db.get(key).decode("utf-8")
+                db.set(key, value, ex=ttl, xx=True)
+                current_value = value
+                ttl_now = db.ttl(key)
+                message = "Updated"
+
+        elif request.method == 'POST':
             flag = db.set(key, value, ex=ttl, nx=True)
+            previous_value = None
+            ttl_now = db.ttl(key)
 
             if flag is None:
                 current_value = db.get(key).decode("utf-8")
                 message = "Already exists"
             else:
                 current_value = value
-                message = "Success"
+                message = "Success, new (key, value) pair created"
 
-            update_value_dict.update({
-                key: dict(
-                    value=current_value,
-                    message=message,
-                    ttl=db.ttl(key)
-                )
-            }
+        update_value_dict.update({
+            key: dict(
+                value=current_value,
+                previous_value=previous_value,
+                message=message,
+                ttl=ttl_now
             )
+        }
+        )
 
-        response_data.update(update_value_dict)
+    response_data.update(update_value_dict)
 
-    return jsonify(response_data), 201
+    return jsonify(response_data), 200
 
 
 @app.route('/values', methods=['GET'])
