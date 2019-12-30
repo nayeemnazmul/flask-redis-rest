@@ -51,6 +51,9 @@ def get_values():
     if request.method == 'GET':
 
         all_keys = db.keys()
+        if len(all_keys) == 0:
+            return jsonify({"message": "All expired"}), 404
+
         response_data = {}
         for key in all_keys:
             key = key.decode("utf-8")
