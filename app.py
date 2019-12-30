@@ -25,8 +25,9 @@ def save_values():
         for key, value in response_data.items():
             flag = db.set(key, value, ex=ttl, nx=True)
 
-            if flag is None:
-                update_value_dict.update({key: "Already exists"})
+            update_value_dict.update({
+                key: dict(value=value, message="Already exists" if flag is None else "Success", ttl=db.ttl(key))
+            })
 
         response_data.update(update_value_dict)
 
@@ -38,11 +39,11 @@ def get_values():
     if request.method == 'GET':
 
         all_keys = db.keys()
-
         response_data = {}
         for key in all_keys:
             key = key.decode("utf-8")
             value = db.get(key).decode("utf-8")
+
             response_data.update({key: value})
 
         return jsonify(response_data), 200
