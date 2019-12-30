@@ -2,6 +2,7 @@
 
 from flask import Flask, request, jsonify
 import redis
+from werkzeug.exceptions import BadRequest, InternalServerError
 
 app = Flask(__name__)
 app.config['BUNDLE_ERRORS'] = True
@@ -19,7 +20,12 @@ def welcome():
 @app.route('/values', methods=['POST'])
 def save_values():
     if request.method == 'POST':
-        response_data = request.json
+        try:
+            response_data = request.json
+        except BadRequest as exception:
+            return jsonify({"message": exception.description}), exception.code
+        except InternalServerError as exception:
+            return jsonify({"message": exception.description}), exception.code
 
         update_value_dict = {}
         for key, value in response_data.items():
