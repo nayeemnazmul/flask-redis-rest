@@ -27,6 +27,9 @@ def save_values():
         except InternalServerError as exception:
             return jsonify({"message": exception.description}), exception.code
 
+        if len(response_data) == 0:
+            return jsonify({"message": "JSON is empty"}), 400
+
         update_value_dict = {}
         for key, value in response_data.items():
             flag = db.set(key, value, ex=ttl, nx=True)
