@@ -7,6 +7,7 @@ from werkzeug.exceptions import BadRequest, InternalServerError
 app = Flask(__name__)
 app.config['BUNDLE_ERRORS'] = True
 app.debug = True
+app.config["DEBUG"] = True
 
 db = redis.Redis('localhost')  # connect to server
 ttl = 300  # 5 minute
@@ -55,26 +56,38 @@ def save_values():
     return jsonify(response_data), 201
 
 
-@app.route('/values?keys=<string:keys>', methods=['GET'])
-def get_specific_values():
-    if request.method == 'GET':
-        pass
-
-
 @app.route('/values', methods=['GET'])
 def get_values():
     if request.method == 'GET':
 
-        all_keys = db.keys()
-        if len(all_keys) == 0:
-            return jsonify({"message": "All expired"}), 404
+        if 'keys' in request.args:
+            keys_arg = request.args.get('keys')
+
+            if len(keys_arg) == 0:
+                return jsonify({"message": "Empty Argument 'keys'"}),
+            else:
+                all_keys = keys_arg.split(sep=',')
+
+        else:
+            all_keys = db.keys()
+            if len(all_keys) == 0:
+                return jsonify({"message": "All expired"}), 410
 
         response_data = {}
         for key in all_keys:
-            key = key.decode("utf-8")
-            value = db.get(key).decode("utf-8")
-            db.expire(key, ttl)
+            key = key.decode("utf-8") if hasattr(key, 'decode') else key
+            byte_value = db.get(key)
+
+            if byte_value is None:
+                value = "Does not exists"
+            else:
+                value = byte_value.decode("utf-8")
+                db.expire(key, ttl)
+
             response_data.update({key: value})
+
+        if len(response_data) == 0:
+            return jsonify({"message": "All expired"}), 410
 
         return jsonify(response_data), 200
 
