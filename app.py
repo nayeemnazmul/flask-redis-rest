@@ -43,7 +43,7 @@ def get_values():
         for key in all_keys:
             key = key.decode("utf-8")
             value = db.get(key).decode("utf-8")
-
+            db.expire(key, ttl)
             response_data.update({key: value})
 
         return jsonify(response_data), 200
