@@ -9,7 +9,7 @@ app.config['BUNDLE_ERRORS'] = True
 app.debug = True
 app.config["DEBUG"] = True
 
-db = redis.Redis('localhost')  # connect to server
+db = redis.Redis(host='localhost', port=6379)  # connect to server
 ttl = 300  # 5 minute
 
 
@@ -112,4 +112,5 @@ def get_values():
 
 
 if __name__ == '__main__':
+    db = redis.Redis(host='redis', port=6379)  # for docker
     app.run(debug=True, host='0.0.0.0')
