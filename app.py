@@ -85,7 +85,7 @@ def get_values():
             if len(keys_arg) == 0:
                 return jsonify({"message": "Empty Argument 'keys'"}),
             else:
-                all_keys = keys_arg.split(sep=',')
+                all_keys = keys_arg.replace(' ', '').split(sep=',')
 
         else:
             all_keys = db.keys()
