@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+
+  web:
+    build: .
+    image: flask-redis-rest
+    container_name: flask-redis-rest
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:5.0.7
+    container_name: redis
